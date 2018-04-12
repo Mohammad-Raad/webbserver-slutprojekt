@@ -1,0 +1,33 @@
+div 
+    a href="/register"
+        a Register
+    a href="/login"
+        a Sign In
+
+div class="holder"
+    div class="container1"
+            div 
+                a href="/"
+                    a Tillbaka
+        table
+            thead
+                th  Name
+                th  Price
+                th  Product image
+            tbody
+                -(i = 0)
+                -(while i < albums.length do)
+                    tr
+                        td  
+                            = products[i][1]
+                        td  
+                            = products[i][2]
+                        td  
+                            = products[i][3] 
+                        a  href='product/prod_id/#{%= i+1}'
+                            a Visa
+                    -(i += 1)
+                -end
+            div
+                a href="/"
+                    a Tillbaka

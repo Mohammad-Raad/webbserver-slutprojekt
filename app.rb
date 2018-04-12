@@ -1,7 +1,6 @@
 class App < Sinatra::Base
 
 	#___________________NOTES_____________________
-	#SKA MAN GÖRA EN NY DATABAS SOM HAR KOLL PÅ VILKA ANVÄNDARE SOM SPARAT VILKA PRODUKTER?
 	#HUR GJORDE MAN SIDAN DYNAMISK SÅ ATT DEN LADDAR OLIKA PRODUKTER MED SAMMA LAYOUT?
 	#___________________NOTES_____________________
 
@@ -12,7 +11,9 @@ class App < Sinatra::Base
 	end
 
 	get('/start') do
-		slim(:start)
+		db = SQLite3::Database.new("db/db.db")
+		products = db.execute("SELECT * FROM products")
+		slim(:start, locals:{products:products})
 	end
 
 	get('/saved_prod') do
@@ -87,13 +88,12 @@ class App < Sinatra::Base
 		redirect('/home')
 	end
 
-	get('/profile') do
-
+	get('/profile/:user_id') do
 		db = SQLite3::Database.new('db/db.db')
 		user_id = session[:id].to_i
 		if session[:login] == true #Om man har loggat in		
 			begin
-				products = db.execute('SELECT * IN products WHERE id IN (SELECT * FROM saved_prod_id IN users WHERE id=?) ', [user_id])
+				products = db.execute('SELECT * IN saved_prod WHERE id=?', [user_id])
 				user_info = db.execute('SELECT name AND user_info FROM users WHERE id=?', [user_id])
 			rescue SQLite3::ConstraintException
 				session[:message] = "You are not logged in"
@@ -111,8 +111,14 @@ class App < Sinatra::Base
 		db = SQLite3::Database.new('db/db.db')
 		user_id = session[:id].to_i
 		id = params[:id]
-		db.execute("DELETE saved_prod_id=? FROM users WHERE id=?", [id, user_id])
+		db.execute("DELETE prod_id=? FROM saved_prod WHERE id=?", [id, user_id])
 		redirect('/saved_prod')
+	end
+
+	post('fav/:prod_id')
+		prod_id=params[:prod_id]
+		user_id = session[:id].to_i
+		db.execute("INSERT INTO saved_prod (user_id, prod_id) VALUES=(?,?)", [user_id, prod_id])
 	end
 
 	get('/error') do
