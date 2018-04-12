@@ -4,7 +4,10 @@ class App < Sinatra::Base
 	#HUR GJORDE MAN SIDAN DYNAMISK SÅ ATT DEN LADDAR OLIKA PRODUKTER MED SAMMA LAYOUT?
 	#___________________NOTES_____________________
 
-	enable :sessions
+	#enable :sessions
+	use Rack::Session::Cookie,  :key => 'rack.session',
+                                :expire_after => 2592000, # In seconds
+                                :secret => 'kryptering'
 
 	get('/register') do
 		slim(:register)
@@ -12,8 +15,13 @@ class App < Sinatra::Base
 
 	get('/start') do
 		db = SQLite3::Database.new("db/db.db")
+		if session[:login]
+			username = db.execute("SELECT username FROM users WHERE id=?", [session[:id]]).first.first
+		else
+			username=""
+		end
 		products = db.execute("SELECT * FROM products")
-		slim(:start, locals:{products:products})
+		slim(:start, locals:{products:products, username:username})
 	end
 
 	get('/saved_prod') do
@@ -25,19 +33,18 @@ class App < Sinatra::Base
 	end
 
 	get('/') do
-		slim(:start)
+		redirect("/start")
 	end
 
 	get('/cart') do
 		slim(:cart)
 	end
 
-	get('/product') do
-		slim(:product)
-	end
-
-	get('/signed_out') do
-		slim(:signed_out)
+	get('/product/:prod_id') do
+		db = SQLite3::Database.new('db/db.db')
+		prod_id=params[:prod_id]
+		product= db.execute("SELECT * FROM products WHERE id=?", [prod_id]).first
+		slim(:product, locals:{product:product})
 	end
 
 	post('/register') do
@@ -46,6 +53,7 @@ class App < Sinatra::Base
 		
 		username = params["username"]
 		password = params["password"]
+		user_info= params["user_info"]
 		password_confirmation = params["confirm_password"]
 		
 		result = db.execute("SELECT id FROM users WHERE username=?", [username])
@@ -53,8 +61,7 @@ class App < Sinatra::Base
 		if result.empty?
 			if password == password_confirmation
 				password_digest = BCrypt::Password.create(password)
-				
-				db.execute("INSERT INTO users(username, password_digest) VALUES (?,?)", [username, password_digest])
+				db.execute("INSERT INTO users(username, password_digest, user_info) VALUES (?,?,?)", [username, password_digest, user_info])
 				redirect('/')
 			else
 				set_error("Passwords don't match")
@@ -85,7 +92,12 @@ class App < Sinatra::Base
 		else
 			session[:login] = false # Är INTE inloggad
 		end
-		redirect('/home')
+
+		redirect('/start')
+	end
+
+	get('/login') do
+		slim(:login)
 	end
 
 	get('/profile/:user_id') do
@@ -115,10 +127,14 @@ class App < Sinatra::Base
 		redirect('/saved_prod')
 	end
 
-	post('fav/:prod_id')
+	post('/add_favourite/:prod_id') do
+		halt 403 unless session[:login]
 		prod_id=params[:prod_id]
 		user_id = session[:id].to_i
-		db.execute("INSERT INTO saved_prod (user_id, prod_id) VALUES=(?,?)", [user_id, prod_id])
+		db = SQLite3::Database.new('db/db.db')
+		prod_name = db.execute("SELECT prod_name FROM products WHERE id=?", [prod_id]).first.first
+		db.execute("INSERT INTO saved_prod (user_id, prod_id) VALUES (?,?)", [user_id, prod_id])
+		"Added #{prod_name} to your favourites!"
 	end
 
 	get('/error') do
@@ -128,7 +144,7 @@ class App < Sinatra::Base
 	post('/logout') do
 		session[:login] = false
 		session[:id] = nil
-		redirect('/signed_out')
+		redirect('/start')
 	end
 
 end           

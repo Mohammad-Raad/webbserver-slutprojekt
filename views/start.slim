@@ -1,33 +1,28 @@
+script src="/js/script.js"
 div 
-    a href="/register"
-        a Register
-    a href="/login"
-        a Sign In
-
+    - if session[:login] == false
+        a href="/register" Register
+        a href="/login" Sign In
+    -else
+        p Hello #{username}
+        form.login-form action="/logout" method="POST"
+            input type="submit" value="Sign out"    
 div class="holder"
     div class="container1"
-            div 
-                a href="/"
-                    a Tillbaka
         table
             thead
                 th  Name
                 th  Price
                 th  Product image
             tbody
-                -(i = 0)
-                -(while i < albums.length do)
+                - products.length.times do |i|
                     tr
                         td  
                             = products[i][1]
                         td  
                             = products[i][2]
                         td  
-                            = products[i][3] 
-                        a  href='product/prod_id/#{%= i+1}'
-                            a Visa
-                    -(i += 1)
-                -end
-            div
-                a href="/"
-                    a Tillbaka
+                            img src="#{products[i][3]}"
+                        a href="product/#{i+1}" Visa
+                        - if session[:login]
+                            button onclick="add_favourite(#{products[i][0]})" Lägg till i favoriter
