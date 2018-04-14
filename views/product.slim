@@ -1,6 +1,31 @@
-div
-    h1  
-        = product[1]
-    p  
-        = product[2]  
-    img src="#{product[3]}"
+div class="profile_links"
+    div id="links"
+        - if session[:login] == false
+            a href="/register" Register
+            a href="/login" Sign In
+        -else
+            p id="greet" Hello #{username}  
+            a href="/profile/#{session[:id]}" Profile and favourites
+            a href="/cart" Shoppingcart
+            form.login-form action="/logout" method="POST"
+                input type="submit" value="Sign out"    
+div class="single"
+    div class="box"
+        - if session[:login]
+            button onclick="add_favourite(#{product[i][0]})" Add to favourites
+        h1  
+            = product[1]
+        p  
+            = product[2]  
+        img src="#{product[3]}"
+    div class="prod_info"
+        div class="form_layout"
+            p Select size and product amount
+            form action="/#" class="form_layout"
+                textarea name="message" rows="1" cols="8" placeholder="Product amount"
+                select name="Sizes"
+                    option value="S" Small
+                    option value="M" Medium
+                    option value="L" Large
+                    option value="XL" X-large
+                input type="submit" value="Add to cart (inget kommer att hända, mvh)"

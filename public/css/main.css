@@ -17,10 +17,17 @@ body{
     align-items: center;
 }
 
-#box{
-    background-color: violet;
+.box{
+    background-color: white;
     display: flex;
     flex-direction: column;
+    width: 300px;
+    height: 500px;
+    max-height: 600px;
+    max-width: 300px;
+    min-width: 300px;
+    min-height: 400px;
+    margin: 20px;
 }
 
 td{
@@ -35,15 +42,18 @@ img{
     max-height: 300px;
 }
 .main1{
-
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    align-items: center;
+    width: auto;
+    height: auto;
 }
 
 .page_title{
-
-}
-
-.page_u_title{
-
+    font-size: larger;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    margin-bottom: -10px;
 }
 
 .main_holder{
@@ -64,6 +74,45 @@ img{
 .profile_links{
     display: flex;
     flex-direction: row;
+    margin-left: 20%;
+}
+
+#links{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     align-content: space-between;
-    
+}
+
+a{
+    text-decoration: none;
+    color: black;
+}
+
+a:hover{
+    color: red;
+}
+
+#greet{
+    color: red;
+}
+
+input:hover{
+    color: red;
+}
+
+.single{
+    display: flex;
+    flex-direction: row;
+}
+
+.prod_info{
+    display: flex;
+    align-items: center;
+}
+
+.form_layout{
+    display: flex;
+    flex-direction: column;
+    margin: 5px;
 }

@@ -27,24 +27,32 @@ class App < Sinatra::Base
 	get('/saved_prod') do
 		slim(:saved_prod)
 	end
-	
-	get('/profile') do
-		slim(:profile)
-	end
 
 	get('/') do
 		redirect("/start")
 	end
 
 	get('/cart') do
-		slim(:cart)
+		db = SQLite3::Database.new("db/db.db")
+		if session[:login]
+			username = db.execute("SELECT username FROM users WHERE id=?", [session[:id]]).first.first
+		else
+			username=""
+		end
+		slim(:cart, locals:{username:username})
 	end
 
 	get('/product/:prod_id') do
+		i = (params["prod_id"].to_s).to_i
 		db = SQLite3::Database.new('db/db.db')
+		if session[:login]
+			username = db.execute("SELECT username FROM users WHERE id=?", [session[:id]]).first.first
+		else
+			username=""
+		end
 		prod_id=params[:prod_id]
 		product= db.execute("SELECT * FROM products WHERE id=?", [prod_id]).first
-		slim(:product, locals:{product:product})
+		slim(:product, locals:{product:product, username:username, i:i})
 	end
 
 	post('/register') do
@@ -105,8 +113,9 @@ class App < Sinatra::Base
 		user_id = session[:id].to_i
 		if session[:login] == true #Om man har loggat in		
 			begin
-				products = db.execute('SELECT * IN saved_prod WHERE id=?', [user_id])
-				user_info = db.execute('SELECT name AND user_info FROM users WHERE id=?', [user_id])
+				products = db.execute('SELECT * FROM saved_prod WHERE user_id=?', [user_id])
+				username = db.execute('SELECT username FROM users WHERE id=?', [user_id]).first.first
+				user_info = db.execute('SELECT user_info FROM users WHERE id=?', [user_id]).first.first
 			rescue SQLite3::ConstraintException
 				session[:message] = "You are not logged in"
 				redirect("/error")
@@ -116,7 +125,7 @@ class App < Sinatra::Base
 			redirect("/error")
 		end
 
-		slim(:profile, locals:{styles:styles})
+		slim(:profile, locals:{products:products, username:username, user_info:user_info})
 	end
 
 	post('/delete/:id') do

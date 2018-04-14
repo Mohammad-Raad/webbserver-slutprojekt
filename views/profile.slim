@@ -1,0 +1,17 @@
+div class="profile_links"
+    div id="links"
+        - if session[:login] == false
+            a href="/register" Register
+            a href="/login" Sign In
+        -else
+            p id="greet" Hello #{username}
+            a href="/profile/#{session[:id]}" Profile and favourites
+            a href="/cart" Shoppingcart
+            form.login-form action="/logout" method="POST"
+                input type="submit" value="Sign out"
+h1 Profile and favourite products
+h2 User
+h3 #{username}
+p Lives in #{user_info}
+h2 Favourite products
+#{products}

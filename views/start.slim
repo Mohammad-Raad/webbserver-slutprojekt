@@ -1,14 +1,15 @@
 div class="profile_links"
-    - if session[:login] == false
-        a href="/register" Register
-        a href="/login" Sign In
-    -else
-        p Hello #{username}
-        a href="/profile" Show profile
-        a href="/saved_prod" Show favourites
-        form.login-form action="/logout" method="POST"
-            input type="submit" value="Sign out"    
-div id="box"
+    div id="links"
+        - if session[:login] == false
+            a href="/register" Register
+            a href="/login" Sign In
+        -else
+            p id="greet" Hello #{username}  
+            a href="/profile/#{session[:id]}" Profile and favourites
+            a href="/cart" Shoppingcart
+            form.login-form action="/logout" method="POST"
+                input type="submit" value="Sign out"    
+div class="box"
     table 
         tbody
             - products.length.times do |i|
