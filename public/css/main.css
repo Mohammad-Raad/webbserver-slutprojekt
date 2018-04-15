@@ -12,7 +12,7 @@ body{
     display: flex;
     flex-direction: column;
     width: 100vw;
-    height: 100vh;
+    height: 120vh;
     box-sizing: border-box;
     align-items: center;
 }
@@ -60,9 +60,9 @@ img{
     display: flex;
     flex-direction: column;
     max-width: 720px;
-    max-height: 1000px;
+    max-height: 1500px;
     width: 720px;
-    height: 1000px;   
+    height: 1500px;   
     align-items: unset;
     border-left: 4px solid white;
     border-right: 4px solid white;
@@ -115,4 +115,9 @@ input:hover{
     display: flex;
     flex-direction: column;
     margin: 5px;
+}
+
+.profile{
+    display: flex;
+    flex-direction: column;
 }
