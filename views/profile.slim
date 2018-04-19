@@ -17,12 +17,14 @@ div class="main1"
         p Lives in #{user_info}
         h2 Favourite products
         div class="box"
-                - if session[:login]
-                    button onclick="add_favourite(#{product_id[i][0]})" Add to favourites
-                p  
-                    = product_id[0][1]
-                p  
-                    = product_id[0][2]  
-                img src="#{product_id[0][3]}"
-                form method="POST" action="/delete/#{product_id[0][0]}"
-                    input type="submit" value="Remove from favourites"
+            - if session[:login]
+                - if product_id != -1
+                    form method="POST" action="/delete/#{product_id[0][0]}"
+                        input type="submit" value="Remove from favourites"
+                    p  
+                        = product_id[0][1]
+                    p  
+                        = product_id[0][2]  
+                    img src="#{product_id[0][3]}"
+                - else
+                    a No favourites!

@@ -1,7 +1,7 @@
 class App < Sinatra::Base
 
 	#___________________NOTES_____________________
-	#HUR GJORDE MAN SIDAN DYNAMISK SÅ ATT DEN LADDAR OLIKA PRODUKTER MED SAMMA LAYOUT?
+	#ska man skapa kundvagn???
 	#___________________NOTES_____________________
 
 	#enable :sessions
@@ -112,14 +112,18 @@ class App < Sinatra::Base
 		db = SQLite3::Database.new('db/db.db')
 		user_id = session[:id].to_i
 		if session[:login] == true #Om man har loggat in		
+			username = db.execute('SELECT username FROM users WHERE id=?', [user_id]).first.first
+			user_info = db.execute('SELECT user_info FROM users WHERE id=?', [user_id]).first.first
 			begin
-				products = db.execute('SELECT * FROM saved_prod WHERE user_id=?', [user_id]).first.first
-				i = (params["products"].to_s).to_i
-				p products
-				username = db.execute('SELECT username FROM users WHERE id=?', [user_id]).first.first
-				user_info = db.execute('SELECT user_info FROM users WHERE id=?', [user_id]).first.first
-				product_id = db.execute("SELECT * FROM products WHERE id=?", [products])
-				p product_id
+				x = (db.execute('SELECT * FROM saved_prod WHERE user_id=?', [user_id]))
+				if x.size() > 0
+					products = (x.first)[1]
+					#i = (params["products"].to_s).to_i
+					p products
+					product_id = db.execute("SELECT * FROM products WHERE id=?", [products[0]])
+				else 
+					product_id = -1
+				end
 			rescue SQLite3::ConstraintException
 				session[:message] = "You are not logged in"
 				redirect("/error")
@@ -129,14 +133,14 @@ class App < Sinatra::Base
 			redirect("/error")
 		end
 
-		slim(:profile, locals:{product_id:product_id, username:username, user_info:user_info, i:i})
+		slim(:profile, locals:{product_id:product_id, username:username, user_info:user_info})
 	end
 
 	post('/delete/:id') do
 		db = SQLite3::Database.new('db/db.db')
 		user_id = session[:id].to_i
 		id = params[:id].to_i
-		db.execute("DELETE FROM saved_prod WHERE (prod_id, user_id) VALUES (?, ?)", [id, user_id])
+		db.execute("DELETE FROM saved_prod WHERE prod_id IS ? AND user_id IS ?", [id, user_id])
 		redirect("/profile/#{user_id}")
 	end
 
