@@ -1,30 +1,51 @@
-div class="main1"
-    div class="profile_links"
-        div id="links"
-            - if session[:login] == false
+nav class="nav-extended"
+    div class="nav-wrapper"
+      a href="#" class="brand-logo" F4U
+      
+      ul id="nav-mobile" class="right hide-on-med-and-down"
+        - if session[:login] == false
+            li 
+                a href="/login" Sign In  
+            li 
                 a href="/register" Register
-                a href="/login" Sign In
-            -else
-                p id="greet" Hello #{username}
-                a href="/profile/#{session[:id]}" Profile and favourites
+            li 
                 a href="/cart" Shoppingcart
+        -else
+            li 
+                a Hello #{username} 
+            li 
+                a href="/profile/#{session[:id]}" Profile and favourites
+            li 
+                a href="/cart" Shoppingcart
+            li 
                 form.login-form action="/logout" method="POST"
                     input type="submit" value="Sign out"
-    div class="profile"
-        h1 Profile and favourite products
-        h2 User
-        h3 #{username}
-        p Lives in #{user_info}
-        h2 Favourite products
-        div class="box"
-            - if session[:login]
-                - if product_id != -1
-                    form method="POST" action="/delete/#{product_id[0][0]}"
+    div class="nav-content" 
+        ul class="tabs tabs-transparent" 
+            li class="tab" 
+                a href="/start" Newest arrivals
+            li class="tab" 
+                a href="/start" Mens
+            li class="tab" 
+                a href="/start" Womens
+            li class="tab" 
+                a href="/start" Accessories
+div class="col s12 m6"
+    h3 Profile and favourite products
+    h3 User
+    h4 #{username}
+    a Lives in #{user_info}
+    h3 Favourite products
+    div class="box"
+        - if session[:login]
+            - if products.size() != 0
+                - products.each do |product|
+                    form method="POST" action="/delete/#{product[0]}"
                         input type="submit" value="Remove from favourites"
                     p  
-                        = product_id[0][1]
+                        = product[1]
                     p  
-                        = product_id[0][2]  
-                    img src="#{product_id[0][3]}"
-                - else
-                    a No favourites!
+                        = product[2]  
+                    img src="#{product[3]}"
+            - else
+                a No favourites!

@@ -1,31 +1,53 @@
-div class="profile_links"
-    div id="links"
+nav class="nav-extended"
+    div class="nav-wrapper"
+      a href="#" class="brand-logo" F4U
+      
+      ul id="nav-mobile" class="right hide-on-med-and-down"
         - if session[:login] == false
-            a href="/register" Register
-            a href="/login" Sign In
+            li 
+                a href="/login" Sign In  
+            li 
+                a href="/register" Register
+            li 
+                a href="/cart" Shoppingcart
         -else
-            p id="greet" Hello #{username}  
-            a href="/profile/#{session[:id]}" Profile and favourites
-            a href="/cart" Shoppingcart
-            form.login-form action="/logout" method="POST"
-                input type="submit" value="Sign out"    
-div class="single"
-    div class="box"
+            li 
+                a Hello #{username} 
+            li 
+                a href="/profile/#{session[:id]}" Profile and favourites
+            li 
+                a href="/cart" Shoppingcart
+            li 
+                form.login-form action="/logout" method="POST"
+                    input type="submit" value="Sign out"
+    div class="nav-content" 
+        ul class="tabs tabs-transparent" 
+            li class="tab" 
+                a href="/start" Newest arrivals
+            li class="tab" 
+                a href="/start" Mens
+            li class="tab" 
+                a href="/start" Womens
+            li class="tab" 
+                a href="/start" Accessories   
+div class="row" 
+    div class="col s12 m6" 
+        div class="card grey" 
+            div class="card-content white-text" 
+                span class="card-title" 
+                    = product[1]
+                span class="card-title" 
+                    = product[2]
+                img src="#{product[3]}"
+        div class="card-action" 
         - if session[:login]
-            button onclick="add_favourite(#{product[0]})" Add to favourites
-        h1  
-            = product[1]
-        p  
-            = product[2]  
-        img src="#{product[3]}"
-    div class="prod_info"
-        div class="form_layout"
-            p Select size and product amount
-            form action="/#" class="form_layout"
-                textarea name="message" rows="1" cols="8" placeholder="Product amount"
-                select name="Sizes"
-                    option value="S" Small
-                    option value="M" Medium
-                    option value="L" Large
-                    option value="XL" X-large
-                input type="submit" value="Add to cart (inget kommer att hända, mvh)"
+            a onclick="add_favourite(#{product[0]})" Add to favourites
+        p Select size and product amount
+        form action="/#" class="form_layout"
+            textarea name="message" rows="1" cols="8" placeholder="Product amount"
+            select name="Sizes"
+                option value="S" Small
+                option value="M" Medium
+                option value="L" Large
+                option value="XL" X-large
+            input type="submit" value="Add to cart (inget kommer att hända, mvh)"
