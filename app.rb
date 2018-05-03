@@ -70,7 +70,6 @@ class App < Sinatra::Base
 	end
 
 	get('/profile/:user_id') do
-		db = SQLite3::Database.new('db/db.db')
 		user_id = session[:id].to_i
 		if session[:login] == true #Om man har loggat in
 			username = show_username(user_id)
