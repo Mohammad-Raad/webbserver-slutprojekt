@@ -1,26 +1,23 @@
+require_relative 'module_sqlite3_funktioner.rb'
+
 class App < Sinatra::Base
 
 	#___________________NOTES_____________________
 	#ska man skapa kundvagn???
 	#___________________NOTES_____________________
 
-	#enable :sessions
 	use Rack::Session::Cookie,  :key => 'rack.session',
                                 :expire_after => 2592000, # In seconds
                                 :secret => 'kryptering'
-
+	include Sqlite3_koder
 	get('/register') do
 		slim(:register)
 	end
 
 	get('/start') do
-		db = SQLite3::Database.new("db/db.db")
-		if session[:login]
-			username = db.execute("SELECT username FROM users WHERE id=?", [session[:id]]).first.first
-		else
-			username=""
-		end
-		products = db.execute("SELECT * FROM products")
+		id = session[:id]
+		username = show_username(id)
+		products = load_products()
 		slim(:start, locals:{products:products, username:username})
 	end
 
@@ -33,73 +30,37 @@ class App < Sinatra::Base
 	end
 
 	get('/cart') do
-		db = SQLite3::Database.new("db/db.db")
-		if session[:login]
-			username = db.execute("SELECT username FROM users WHERE id=?", [session[:id]]).first.first
-		else
-			username=""
-		end
+		id = session[:id]
+		username = show_username(id)
 		slim(:cart, locals:{username:username})
 	end
 
 	get('/product/:prod_id') do
 		i = (params["prod_id"].to_s).to_i
-		db = SQLite3::Database.new('db/db.db')
-		if session[:login]
-			username = db.execute("SELECT username FROM users WHERE id=?", [session[:id]]).first.first
-		else
-			username=""
-		end
-		prod_id=params[:prod_id]
-		product= db.execute("SELECT * FROM products WHERE id=?", [prod_id]).first
+		id = session[:id]
+		username = show_username(id)
+		prod_id = params[:prod_id]
+		product = show_specific_product(prod_id)
 		slim(:product, locals:{product:product, username:username, i:i})
 	end
 
 	post('/register') do
-		db = SQLite3::Database.new('db/db.db')
-		db.results_as_hash = true
 		
 		username = params["username"]
-		password = params["password"]
-		user_info= params["user_info"]
-		password_confirmation = params["confirm_password"]
 		
-		result = db.execute("SELECT id FROM users WHERE username=?", [username])
+		result = registering_user_confirmation(username)
 
 		if result.empty?
-			if password == password_confirmation
-				password_digest = BCrypt::Password.create(password)
-				db.execute("INSERT INTO users(username, password_digest, user_info) VALUES (?,?,?)", [username, password_digest, user_info])
-				redirect('/')
-			else
-				set_error("Passwords don't match")
-				redirect('/error')
-			end
+			redirect(check_login(params))
 		else
-			set_error("Username already exists")
+			session[:message] = "Username already exists"
 			redirect('/error')
 		end
 
 	end
 
 	post('/login') do
-		db = SQLite3::Database.new('db/db.db') #Länka SQLITE
-		username = params["username"] # Hämtad från register.slim, input med name="username"
-		password = params["password"]
-		password_crypted = db.execute("SELECT password_digest FROM users WHERE username=?", [username])
-		if password_crypted == []
-			password_digest = nil
-		else
-			password_crypted = password_crypted[0][0] # första värdet, kollar på username, andra värden är password
-			password_digest = BCrypt::Password.new(password_crypted) # "Dekryptar"
-		end
-		if password_digest == password # om lösenordet matchar
-			result = db.execute("SELECT id FROM users WHERE username=?", [username]) #Hämta ID från konton
-			session[:id] = result[0][0] # id
-			session[:login] = true # Är inloggad
-		else
-			session[:login] = false # Är INTE inloggad
-		end
+		login_check()
 
 		redirect('/start')
 	end
@@ -111,22 +72,11 @@ class App < Sinatra::Base
 	get('/profile/:user_id') do
 		db = SQLite3::Database.new('db/db.db')
 		user_id = session[:id].to_i
-		products = []
-		if session[:login] == true #Om man har loggat in		
-			username = db.execute('SELECT username FROM users WHERE id=?', [user_id]).first.first
-			user_info = db.execute('SELECT user_info FROM users WHERE id=?', [user_id]).first.first
-			begin
-				saved_products = (db.execute('SELECT * FROM saved_prod WHERE user_id=?', [user_id]))
-				if saved_products.size() > 0
-					saved_products.each do |saved_product|
-						product_id = saved_product[1]
-						products.push(db.execute("SELECT * FROM products WHERE id=?", [product_id]).first)
-					end
-				end
-			rescue SQLite3::ConstraintException
-				session[:message] = "You are not logged in"
-				redirect("/error")
-			end
+		if session[:login] == true #Om man har loggat in
+			username = show_username(user_id)
+			user_info = load_user_information(user_id)
+			products = (show_favourite_products(user_id))[0]
+			
 		else
 			session[:message] = "You are not logged in"
 			redirect("/error")
@@ -136,10 +86,9 @@ class App < Sinatra::Base
 	end
 
 	post('/delete/:id') do
-		db = SQLite3::Database.new('db/db.db')
 		user_id = session[:id].to_i
 		id = params[:id].to_i
-		db.execute("DELETE FROM saved_prod WHERE prod_id IS ? AND user_id IS ?", [id, user_id])
+		delete_product(id, user_id)
 		redirect("/profile/#{user_id}")
 	end
 
@@ -147,9 +96,8 @@ class App < Sinatra::Base
 		halt 403 unless session[:login]
 		prod_id=params[:prod_id]
 		user_id = session[:id].to_i
-		db = SQLite3::Database.new('db/db.db')
-		prod_name = db.execute("SELECT prod_name FROM products WHERE id=?", [prod_id]).first.first
-		db.execute("INSERT INTO saved_prod (user_id, prod_id) VALUES (?, ?)", [user_id, prod_id])
+		prod_name = select_the_product_to_favourite(prod_id)
+		adding_product_to_favourite(user_id, prod_id)
 		"Added #{prod_name} to your favourites!"
 	end
 
